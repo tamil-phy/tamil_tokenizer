@@ -1,0 +1,17 @@
+# Copy this to ~/.pypirc and fill in your tokens
+# DO NOT commit this file with real tokens!
+
+[distutils]
+index-servers =
+    pypi
+    testpypi
+
+[pypi]
+repository = https://upload.pypi.org/legacy/
+username = __token__
+password = pypi-YOUR-REAL-PYPI-TOKEN
+
+[testpypi]
+repository = https://test.pypi.org/legacy/
+username = __token__
+password = pypi-YOUR-TEST-PYPI-TOKEN

@@ -1,0 +1,47 @@
+[build-system]
+requires = ["setuptools>=61.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "tamil-morpheme-tokenizer"
+version = "1.0.0"
+description = "Multi-level tokenizer for Tamil text — sentence, word, character, and morpheme tokenization"
+readme = "README.md"
+license = {text = "MIT"}
+requires-python = ">=3.8"
+authors = [
+    {name = "Tamil NLP Project"},
+]
+keywords = ["tamil", "tokenizer", "nlp", "morpheme", "tamil-nlp", "text-processing"]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: Developers",
+    "Intended Audience :: Science/Research",
+    "License :: OSI Approved :: MIT License",
+    "Topic :: Text Processing :: Linguistic",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.8",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Natural Language :: Tamil",
+    "Operating System :: OS Independent",
+]
+
+[project.optional-dependencies]
+hf = ["transformers>=4.20.0"]
+
+[project.scripts]
+tamil-tokenize = "tamil_tokenizer.__main__:main"
+
+[project.urls]
+Homepage = "https://github.com/tamil-nlp/tamil-morpheme-tokenizer"
+Repository = "https://github.com/tamil-nlp/tamil-morpheme-tokenizer"
+Issues = "https://github.com/tamil-nlp/tamil-morpheme-tokenizer/issues"
+
+[tool.setuptools.packages.find]
+include = ["tamil_tokenizer*"]
+
+[tool.setuptools.package-data]
+tamil_tokenizer = ["data/*.list"]

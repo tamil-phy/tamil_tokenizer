@@ -1,0 +1,6 @@
+# Tamil Tokenizer Requirements
+# Core: No external dependencies required - uses only Python standard library
+
+# Optional: Required for HuggingFace-compatible tokenizer (TamilHFTokenizer)
+# Install with: pip install tamil-tokenizer[hf]
+# transformers>=4.20.0
