@@ -120,6 +120,35 @@ class TamilVetrumai:
                                     root=root,
                                     suffix=matched_cm + matched_pp
                                 )
+                    # Handle sandhi: when a vowel-initial postposition
+                    # consumed the vowel of the preceding case marker's last
+                    # syllable, leaving a bare consonant. Restore pulli and retry.
+                    if (pp and pp[0] in _VOWEL_SIGN_MAP and remainder and
+                            TC.க <= ord(remainder[-1]) <= TC.ஹ):
+                        remainder_pulli = remainder + chr(TC.ஃ_EXT)
+                        for cm in case_markers_sorted:
+                            if remainder_pulli.endswith(cm):
+                                root = remainder_pulli[:-len(cm)]
+                                # Handle sandhi consonant doubling (வலிமிகுதல்):
+                                # If root ends with same consonant+pulli as the
+                                # case marker's first consonant, strip it.
+                                if (cm and root and len(root) >= 2 and
+                                        ord(root[-1]) == TC.ஃ_EXT and
+                                        root[-2] == cm[0]):
+                                    candidate = root[:-2]
+                                    if candidate:
+                                        last_code = ord(candidate[-1])
+                                        # Sandhi doubling only follows vowels
+                                        if (0x0BBE <= last_code <= 0x0BCC or
+                                                0x0B85 <= last_code <= 0x0B94):
+                                            root = candidate
+                                if root:
+                                    actual_suffix = word[len(root):]
+                                    return VetrumaiResult(
+                                        root=root,
+                                        suffix=actual_suffix
+                                    )
+
                     # Postposition alone (no case marker before it)
                     return VetrumaiResult(root=remainder, suffix=matched_pp)
 
@@ -150,14 +179,25 @@ class TamilVetrumai:
     @staticmethod
     def _strip_suffix(word: str, suffix: str) -> Tuple[str, str]:
         """Strip suffix from word and return root and matched suffix"""
+        root = None
+        
         if word.endswith(suffix):
-            return (word[:-len(suffix)], suffix)
-
+            root = word[:-len(suffix)]
         # Handle vowel sign variants (built from TamilConstants)
-        if suffix and suffix[0] in _VOWEL_SIGN_MAP:
+        elif suffix and suffix[0] in _VOWEL_SIGN_MAP:
             attached_form = _VOWEL_SIGN_MAP[suffix[0]] + suffix[1:] if len(suffix) > 1 else _VOWEL_SIGN_MAP[suffix[0]]
             if word.endswith(attached_form):
-                return (word[:-len(attached_form)], suffix)
+                root = word[:-len(attached_form)]
+        
+        if root is not None:
+            # Strip sandhi glide consonants (ய, வ) if present after vowel sign
+            # e.g., மழைய + ால் → மழை (not மழைய)
+            if len(root) >= 2 and root[-1] in ('ய', 'வ'):
+                # Check if preceded by a vowel sign
+                prev_char_code = ord(root[-2])
+                if 0x0BBE <= prev_char_code <= 0x0BCC:  # vowel signs
+                    root = root[:-1]
+            return (root, suffix)
 
         return (word, suffix)
 
