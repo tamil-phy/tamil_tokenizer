@@ -512,13 +512,10 @@ class TamilTokenizer:
             from .grammar.vetrumai import TamilVetrumai
             result = TamilVetrumai.analyze(word)
 
-            if result.suffix and result.case_number > 1:
+            if result.suffix:
                 root = result.root
                 suffix_text = result.suffix
                 suffix_meta = {
-                    "case_number": result.case_number,
-                    "case_name": result.case_name,
-                    "case_tamil": result.case_tamil_name,
                     "source": "vetrumai",
                 }
                 return root, [(suffix_text, TokenType.CASE_SUFFIX, suffix_meta)], {
@@ -530,44 +527,24 @@ class TamilTokenizer:
         return word, [], {}
 
     def _analyze_verb_morphology(self, word: str):
-        """Analyze verb morphology for tense and person markers."""
+        """Analyze verb morphology for tense and person markers (from data)."""
         try:
             from .grammar.illakanam import TamilIllakanam
             from .grammar.tamil_util import TamilUtil
 
-            split_word = TamilUtil.split_letters(word)
             suffixes = []
 
-            # Tense markers
-            tense = TamilIllakanam.get_tense(word)
-            tense_markers_map = {
-                "இறந்தகாலம்": ["த்த்", "ந்த்", "ட்ட்", "ற்ற்"],
-                "நிகழ்காலம்": ["கிற்", "கின்ற்", "க்கிற்", "க்கின்ற்"],
-                "எதிர்காலம்": ["ப்ப்", "வ்"],
-            }
-
+            # Find tense marker from data (flat list from mainConstant.list)
+            tense_marker = TamilIllakanam.find_tense_marker(word)
             tense_suffix = None
-            if tense and tense in tense_markers_map:
-                for marker in tense_markers_map[tense]:
-                    if marker in split_word:
-                        # Convert back to display form
-                        tense_suffix = TamilUtil.join_letters(marker)
-                        break
+            if tense_marker:
+                tense_suffix = TamilUtil.join_letters(tense_marker)
 
-            # Person markers
-            person = TamilIllakanam.get_person(word)
-            person_markers_map = {
-                "தன்மை": ["ஏன்", "ஓம்", "ஏம்"],
-                "முன்னிலை": ["ஆய்", "ஈர்", "ஈர்கள்"],
-                "படர்க்கை": ["ஆன்", "ஆள்", "ஆர்", "ஆர்கள்", "அது", "அன", "அர்"],
-            }
-
+            # Find person ending from data (flat list from mainConstant.list)
+            person_marker = TamilIllakanam.find_person_ending(word)
             person_suffix = None
-            if person and person in person_markers_map:
-                for marker in person_markers_map[person]:
-                    if split_word.endswith(marker):
-                        person_suffix = TamilUtil.join_letters(marker)
-                        break
+            if person_marker:
+                person_suffix = TamilUtil.join_letters(person_marker)
 
             if tense_suffix or person_suffix:
                 # Estimate root: strip known suffixes from end
@@ -581,13 +558,13 @@ class TamilTokenizer:
                     suffixes.append((
                         tense_suffix,
                         TokenType.TENSE_MARKER,
-                        {"tense": tense, "source": "illakanam"},
+                        {"source": "illakanam"},
                     ))
                 if person_suffix:
                     suffixes.append((
                         person_suffix,
                         TokenType.PERSON_MARKER,
-                        {"person": person, "source": "illakanam"},
+                        {"source": "illakanam"},
                     ))
 
                 if suffixes and root != word:

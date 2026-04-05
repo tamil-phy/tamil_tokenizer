@@ -8,11 +8,14 @@ Author: Tamil Arasan
 Since: Oct 13, 2017
 """
 
+import logging
 import os
 from pathlib import Path
 from typing import Dict, List, Optional, Tuple, Any
 from .config_loader import ConfigLoader
 from .constants import ConfigConstants, DEFAULT_FILE_PATHS
+
+logger = logging.getLogger(__name__)
 
 
 class TamilConstantTable:
@@ -108,7 +111,7 @@ class TamilConstantTable:
             self._load_word_list()
 
         except Exception as e:
-            print(f"Error loading basic files: {e}")
+            logger.error(f"Error loading basic files: {e}")
 
     def _load_ignore_lists(self) -> None:
         """Load all ignore lists"""
@@ -117,14 +120,14 @@ class TamilConstantTable:
                                         "ignoreVerb.list")
         if os.path.exists(verb_file):
             self.ignore_verb_list = self.config_loader.read_comma_separated_file(verb_file)
-            print(f"Loaded {len(self.ignore_verb_list)} verbs to ignore")
+            logger.debug(f"Loaded {len(self.ignore_verb_list)} verbs to ignore")
 
         # Ignore noun list
         noun_file = self._get_file_path(ConfigConstants.IGNORE_NOUN_LIST_FILE_NAME,
                                         "ignoreNoun.list")
         if os.path.exists(noun_file):
             self.ignore_noun_list = self.config_loader.read_comma_separated_file(noun_file)
-            print(f"Loaded {len(self.ignore_noun_list)} nouns to ignore")
+            logger.debug(f"Loaded {len(self.ignore_noun_list)} nouns to ignore")
 
         # Ignore other grammar list
         other_file = self._get_file_path(ConfigConstants.IGNORE_OTHER_GRAMMAR_LIST_FILE_NAME,
@@ -383,7 +386,7 @@ class TamilConstantTable:
                                            DEFAULT_FILE_PATHS.get(file_name, ""))
             return self.config_loader.read_properties_file(file_path)
         except Exception as e:
-            print(f"Error loading {file_name}: {e}")
+            logger.error(f"Error loading {file_name}: {e}")
             return {}
 
     def get_main_table(self, main_words: List[List[str]],
@@ -438,7 +441,7 @@ class TamilConstantTable:
                         inner_list_str = list(common_words[adjusted_idx])
                         outer_list_str.append(inner_list_str)
                 except Exception as e:
-                    print(f"TamilConstantTable...Error: {idx}:{self.START_VALUE}:{e}")
+                    logger.error(f"TamilConstantTable...Error: {idx}:{self.START_VALUE}:{e}")
 
             # Store mappings
             rule_key = tuple(parse_rule)
@@ -455,4 +458,4 @@ class TamilConstantTable:
     def print_main_parse_property(self, parse_map: Dict[str, str]) -> None:
         """Print parse map properties for debugging"""
         for key, value in parse_map.items():
-            print(f"{key}-:-{value}")
+            logger.debug(f"{key}-:-{value}")

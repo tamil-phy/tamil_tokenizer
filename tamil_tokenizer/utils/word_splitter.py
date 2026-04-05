@@ -8,8 +8,11 @@ Author: Tamil Arasan
 Since: May 31, 2019
 """
 
+import logging
 import re
 from typing import List
+
+logger = logging.getLogger(__name__)
 
 
 class WordSplitter:
@@ -168,7 +171,7 @@ class WordSplitter:
         while i < len(text):
             ch = ord(text[i])
             char_count = 1 if ch < 0x10000 else 2
-            print(f"{i + char_count}:{ch}:{char_count}")
+            logger.debug(f"{i + char_count}:{ch}:{char_count}")
             i += char_count
 
 
@@ -188,7 +191,7 @@ def read_file_as_string(file_name: str) -> str:
             for line in f:
                 result.append(line.rstrip('\n'))
     except IOError as e:
-        print(f"Error reading file: {e}")
+        logger.error(f"Error reading file: {e}")
 
     return ''.join(result)
 
@@ -201,4 +204,4 @@ if __name__ == "__main__":
     words = splitter.split_words(test_text)
 
     for word in words:
-        print(word)
+        logger.debug(word)

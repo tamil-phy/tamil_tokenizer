@@ -8,11 +8,14 @@ Author: Tamil Arasan, Kamatchi (Original Java)
 Since: Oct 21, 2017
 """
 
+import logging
 import os
 import re
 from typing import Dict, List, Optional, Tuple, Any, Set
 from collections import OrderedDict
 from pathlib import Path
+
+logger = logging.getLogger(__name__)
 import copy
 
 from ..grammar.tamil_util import TamilUtil
@@ -107,10 +110,10 @@ class TamilRootWordParser(CoreParser):
             )
 
             TamilRootWordParser._initialized = True
-            print("TamilRootWordParser loaded.")
+            logger.debug("TamilRootWordParser loaded.")
 
         except Exception as e:
-            print(f"Error initializing TamilRootWordParser: {e}")
+            logger.error(f"Error initializing TamilRootWordParser: {e}")
             raise
 
     def get_parser_type(self) -> str:
@@ -231,7 +234,7 @@ class TamilRootWordParser(CoreParser):
                 try:
                     word2 = None
                     word1 = TamilUtil.எழுத்துகளைபிரி(word0, False, False)
-                    print(f"{word0}:{word1}")
+                    logger.debug(f"{word0}:{word1}")
 
                     last_deep_list: Dict[tuple, List[str]] = {}
                     last_deep_parse_list: Dict[str, str] = {}
@@ -274,7 +277,7 @@ class TamilRootWordParser(CoreParser):
                         ))
 
                         depth_size = len(outer_list)
-                        print(f"{outer_key}: OuterList Size:{len(list_of_inner_list)}:depthSize:{depth_size},TotalCount:{self.total_counter}")
+                        logger.debug(f"{outer_key}: OuterList Size:{len(list_of_inner_list)}:depthSize:{depth_size},TotalCount:{self.total_counter}")
 
                         try:
                             list_of_inner_list_clone = [lst.copy() for lst in list_of_inner_list]
@@ -302,10 +305,10 @@ class TamilRootWordParser(CoreParser):
                                     break
 
                         except Exception as e:
-                            print(f"Error in parse loop: {e}")
+                            logger.error(f"Error in parse loop: {e}")
 
                         if self.total_counter > self.EXIT_LOOP:
-                            print(f"{words}:T Break totalCounter:{self.total_counter}: ExitLoop:{self.EXIT_LOOP}")
+                            logger.debug(f"{words}:T Break totalCounter:{self.total_counter}: ExitLoop:{self.EXIT_LOOP}")
                             self.total_counter = 0
                             break
 
@@ -324,12 +327,12 @@ class TamilRootWordParser(CoreParser):
                         )
 
                 except Exception as e:
-                    print(f"Error parsing word: {e}")
+                    logger.error(f"Error parsing word: {e}")
 
                 self.total_counter = 0
 
         except Exception as e:
-            print(f"Error in parse: {e}")
+            logger.error(f"Error in parse: {e}")
 
         return self.map_of_list
 

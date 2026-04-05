@@ -3,7 +3,7 @@ requires = ["setuptools>=61.0", "wheel"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "tamil-morpheme-tokenizer"
+name = "tamil-tokenizer"
 version = "1.0.0"
 description = "Multi-level tokenizer for Tamil text — sentence, word, character, and morpheme tokenization"
 readme = "README.md"
@@ -36,9 +36,9 @@ hf = ["transformers>=4.20.0"]
 tamil-tokenize = "tamil_tokenizer.__main__:main"
 
 [project.urls]
-Homepage = "https://github.com/tamil-nlp/tamil-morpheme-tokenizer"
-Repository = "https://github.com/tamil-nlp/tamil-morpheme-tokenizer"
-Issues = "https://github.com/tamil-nlp/tamil-morpheme-tokenizer/issues"
+Homepage = "https://github.com/tamil-nlp/tamil-tokenizer"
+Repository = "https://github.com/tamil-nlp/tamil-tokenizer"
+Issues = "https://github.com/tamil-nlp/tamil-tokenizer/issues"
 
 [tool.setuptools.packages.find]
 include = ["tamil_tokenizer*"]

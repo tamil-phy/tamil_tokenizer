@@ -19,9 +19,12 @@ Usage:
 """
 
 import json
+import logging
 import os
 from collections import OrderedDict
 from typing import Dict, List, Optional, Tuple, Union
+
+logger = logging.getLogger(__name__)
 
 from transformers import PreTrainedTokenizer
 
@@ -157,7 +160,7 @@ class TamilHFTokenizer(PreTrainedTokenizer):
 
         for i, text in enumerate(texts):
             if show_progress and (i + 1) % 10000 == 0:
-                print(f"  Processing {i + 1}/{total} texts...")
+                logger.info(f"  Processing {i + 1}/{total} texts...")
             tokens = self._tokenize_text(text)
             for tok in tokens:
                 token_freq[tok] = token_freq.get(tok, 0) + 1
@@ -178,7 +181,7 @@ class TamilHFTokenizer(PreTrainedTokenizer):
                 self._id_to_token[idx] = tok
 
         if show_progress:
-            print(f"  Vocabulary built: {len(self._token_to_id)} tokens "
+            logger.info(f"  Vocabulary built: {len(self._token_to_id)} tokens "
                   f"(from {len(token_freq)} unique tokens, "
                   f"min_frequency={self._min_frequency})")
 

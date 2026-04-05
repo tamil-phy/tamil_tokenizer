@@ -3,7 +3,7 @@
 from setuptools import setup, find_packages
 
 setup(
-    name="tamil-tokenizer",
+    name="tamil_tokenizer",
     version="1.0.0",
     description="Multi-level tokenizer for Tamil text",
     long_description=open("README.md", encoding="utf-8").read(),

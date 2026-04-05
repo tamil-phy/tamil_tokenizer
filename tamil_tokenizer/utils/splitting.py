@@ -6,8 +6,11 @@ This module provides utilities for splitting and processing parsed word results.
 Author: Tamil Arasan
 """
 
+import logging
 from typing import Dict, List, Optional, Tuple, Any
 from .word_class import WordClass
+
+logger = logging.getLogger(__name__)
 
 
 class SplittingUtil:
@@ -121,7 +124,7 @@ class SplittingUtil:
                         list_of_temp.append(str_val + temp_str)
 
         except Exception as e:
-            print(f"Error: {list_of_list}")
+            logger.error(f"Error: {list_of_list}")
             raise e
 
         return list_of_temp
@@ -246,7 +249,7 @@ class SplittingUtil:
                     result_map["0"] = first_value
 
         except Exception as e:
-            print(f"{main_str}$$$1$$${str_all_element[0] if str_all_element else None}$$$$2$$$${result_map.get('0')}")
+            logger.error(f"{main_str}$$$1$$${str_all_element[0] if str_all_element else None}$$$$2$$$${result_map.get('0')}")
             raise e
 
     def _set_description_with_main(self, s: str, main_str: str,
@@ -355,8 +358,7 @@ class SplittingUtil:
                         temp_split_list.append(raw_split_list[count])
                         count += 1
                 except Exception:
-                    print(f"Exception:********")
-                    print(f"{word}:{len(raw_split_list)}")
+                    logger.error(f"Exception: {word}:{len(raw_split_list)}")
 
                 word_class = WordClass.create(
                     number=0,
@@ -454,4 +456,4 @@ class SplittingUtil:
             result_map: Map to print
         """
         for key, value in result_map.items():
-            print(f"{key}:{value}:", end="")
+            logger.debug(f"{key}:{value}")
