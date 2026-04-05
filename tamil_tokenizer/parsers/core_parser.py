@@ -4,17 +4,14 @@ Core Parser - Equivalent to CoreParser.java
 This module provides the abstract base class for all Tamil word parsers.
 It contains the core suffix matching and word splitting algorithms.
 
-Author: Rajamani David (Original Java)
+Author: Tamil Arasan
 Since: Feb 09, 2020
 """
 
-import logging
 from abc import ABC, abstractmethod
 from typing import Dict, List, Optional, Tuple, Any, Set
 from collections import OrderedDict
 import copy
-
-logger = logging.getLogger(__name__)
 
 from ..grammar.tamil_util import TamilUtil
 from ..constants.tamil_letters import TamilConstants as TC
@@ -232,7 +229,7 @@ class CoreParser(WordParserInterface, ABC):
                     old_index[1] = index[1]
 
                 except Exception as e:
-                    logger.error(f"Error in suffix extraction: {e}")
+                    print(f"Error in suffix extraction: {e}")
 
             ignore_string = CoreParser._check_ignore_list(
                 str_array, deeper_inner_list, last_deep_map,
@@ -577,7 +574,7 @@ class CoreParser(WordParserInterface, ABC):
                 prev_size -= 1
 
         except Exception as e:
-            logger.error(f"{check_value}:{value}")
+            print(f"{check_value}:{value}")
             raise e
 
         return (check_value, value, word2, check_value_arr_list)

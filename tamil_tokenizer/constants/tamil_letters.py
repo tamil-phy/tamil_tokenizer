@@ -4,7 +4,7 @@ Tamil Unicode Constants - Equivalent to TamilConstants.java
 This module contains all Tamil Unicode character constants, letter classifications,
 and pattern arrays used throughout the NLP system.
 
-Author: Rajamani David (Original Java)
+Author: Tamil Arasan
 Since: May 2, 2017
 """
 

@@ -1,0 +1,5 @@
+SPLIT=true,ENDS=த்,DELETE=த்,ADD=த்
+SPLIT=true,ENDS=ச்,DELETE=ச்,ADD=ச்
+SPLIT=true,ENDS=க்,DELETE=க்,ADD=க்
+SPLIT=true,ENDS=ப்,DELETE=ப்,ADD=ப்
+SPLIT=true,ENDS=க்அள்,DELETE=க்அள்,ADD=க்அள்

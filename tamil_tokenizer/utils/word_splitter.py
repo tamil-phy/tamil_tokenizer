@@ -4,15 +4,12 @@ Word Splitter - Equivalent to WordSplitter.java
 This module provides utilities for splitting text into words,
 handling special characters and Tamil text properly.
 
-Author: Rajamani David (Original Java)
+Author: Tamil Arasan
 Since: May 31, 2019
 """
 
-import logging
 import re
 from typing import List
-
-logger = logging.getLogger(__name__)
 
 
 class WordSplitter:
@@ -171,7 +168,7 @@ class WordSplitter:
         while i < len(text):
             ch = ord(text[i])
             char_count = 1 if ch < 0x10000 else 2
-            logger.debug(f"{i + char_count}:{ch}:{char_count}")
+            print(f"{i + char_count}:{ch}:{char_count}")
             i += char_count
 
 
@@ -191,7 +188,7 @@ def read_file_as_string(file_name: str) -> str:
             for line in f:
                 result.append(line.rstrip('\n'))
     except IOError as e:
-        logger.error(f"Error reading file: {e}")
+        print(f"Error reading file: {e}")
 
     return ''.join(result)
 

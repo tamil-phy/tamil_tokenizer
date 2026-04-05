@@ -1,0 +1,33 @@
+U+0020	 	32	Space	0001
+U+0021	!	33	Exclamation mark	0002
+U+0022	"	34	Quotation mark	0003
+U+0023	#	35	Number sign, Hashtag, Octothorpe, Sharp	0004
+U+0024	$	36	Dollar sign	0005
+U+0025	%	37	Percent sign	0006
+U+0026	&	38	Ampersand	0007
+U+0027	'	39	Apostrophe	0008
+U+0028	(	40	Left parenthesis	0009
+U+0029	)	41	Right parenthesis	0010
+U+002A	*	42	Asterisk	0011
+U+002B	+	43	Plus sign	0012
+U+002C	,	44	Comma	0013
+U+002D	-	45	Hyphen-minus	0014
+U+002E	.	46	Full stop	0015
+U+002F	/	47  Slash (Solidus)	0016
+U+003A	:	58	Colon	0027
+U+003B	;	59	Semicolon	0028
+U+003C	<	60	Less-than sign	0029
+U+003D	=	61	Equal sign	0030
+U+003E	>	62	Greater-than sign	0031
+U+003F	?	63	Question mark	0032
+U+0040	@	64	At sign	0033
+U+005B	[	91	Left Square Bracket	0060
+U+005C	\	92	Backslash	0061
+U+005D	]	93	Right Square Bracket	0062
+U+005E	^	94	Circumflex accent	0063
+U+005F	_	95	Low line	0064
+U+0060	`	96	Grave accent	0065
+U+007B	{	123	Left Curly Bracket	0092
+U+007C	|	124	Vertical bar	0093
+U+007D	}	125	Right Curly Bracket	0094
+U+007E	~	126	Tilde	0095

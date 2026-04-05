@@ -4,18 +4,15 @@ Tamil Constant Table - Equivalent to TamilConstantTable.java
 This module manages the loading and lookup of Tamil grammar rules,
 ignore lists, and parse configurations.
 
-Author: Rajamani David (Original Java)
+Author: Tamil Arasan
 Since: Oct 13, 2017
 """
 
-import logging
 import os
 from pathlib import Path
 from typing import Dict, List, Optional, Tuple, Any
 from .config_loader import ConfigLoader
 from .constants import ConfigConstants, DEFAULT_FILE_PATHS
-
-logger = logging.getLogger(__name__)
 
 
 class TamilConstantTable:
@@ -111,7 +108,7 @@ class TamilConstantTable:
             self._load_word_list()
 
         except Exception as e:
-            logger.error(f"Error loading basic files: {e}")
+            print(f"Error loading basic files: {e}")
 
     def _load_ignore_lists(self) -> None:
         """Load all ignore lists"""
@@ -120,14 +117,14 @@ class TamilConstantTable:
                                         "ignoreVerb.list")
         if os.path.exists(verb_file):
             self.ignore_verb_list = self.config_loader.read_comma_separated_file(verb_file)
-            logger.debug(f"Loaded {len(self.ignore_verb_list)} verbs to ignore")
+            print(f"Loaded {len(self.ignore_verb_list)} verbs to ignore")
 
         # Ignore noun list
         noun_file = self._get_file_path(ConfigConstants.IGNORE_NOUN_LIST_FILE_NAME,
                                         "ignoreNoun.list")
         if os.path.exists(noun_file):
             self.ignore_noun_list = self.config_loader.read_comma_separated_file(noun_file)
-            logger.debug(f"Loaded {len(self.ignore_noun_list)} nouns to ignore")
+            print(f"Loaded {len(self.ignore_noun_list)} nouns to ignore")
 
         # Ignore other grammar list
         other_file = self._get_file_path(ConfigConstants.IGNORE_OTHER_GRAMMAR_LIST_FILE_NAME,
@@ -185,6 +182,24 @@ class TamilConstantTable:
             Full file path
         """
         filename = self.file_map.get(config_key, default_name)
+
+        # Normalize Windows-style paths to Unix-style
+        # Handle paths like "..\properties\mainConstant.list"
+        filename = filename.replace('\\', '/')
+
+        # If path starts with "..", resolve it relative to data_path
+        if filename.startswith('../') or filename.startswith('..\\'):
+            # Remove the ../ prefix and use just the filename
+            parts = filename.split('/')
+            # Find the actual filename (last part after properties/)
+            for i, part in enumerate(parts):
+                if part == 'properties' and i + 1 < len(parts):
+                    filename = parts[i + 1]
+                    break
+            else:
+                # Fallback: just use the last part
+                filename = parts[-1]
+
         return os.path.join(self.data_path, filename)
 
     def get_main_word_list(self, main_words: List[List[str]]) -> List[List[str]]:
@@ -368,7 +383,7 @@ class TamilConstantTable:
                                            DEFAULT_FILE_PATHS.get(file_name, ""))
             return self.config_loader.read_properties_file(file_path)
         except Exception as e:
-            logger.error(f"Error loading {file_name}: {e}")
+            print(f"Error loading {file_name}: {e}")
             return {}
 
     def get_main_table(self, main_words: List[List[str]],
@@ -423,7 +438,7 @@ class TamilConstantTable:
                         inner_list_str = list(common_words[adjusted_idx])
                         outer_list_str.append(inner_list_str)
                 except Exception as e:
-                    logger.error(f"TamilConstantTable...Error: {idx}:{self.START_VALUE}:{e}")
+                    print(f"TamilConstantTable...Error: {idx}:{self.START_VALUE}:{e}")
 
             # Store mappings
             rule_key = tuple(parse_rule)
@@ -440,4 +455,4 @@ class TamilConstantTable:
     def print_main_parse_property(self, parse_map: Dict[str, str]) -> None:
         """Print parse map properties for debugging"""
         for key, value in parse_map.items():
-            logger.debug(f"{key}-:-{value}")
+            print(f"{key}-:-{value}")

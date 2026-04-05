@@ -4,7 +4,7 @@ Recursive Algorithm - Equivalent to RecursiveAlgorithm.java
 This module provides the cartesian product algorithm used to generate
 all possible suffix combinations from parse order patterns.
 
-Author: Rajamani David (Original Java)
+Author: Tamil Arasan
 Since: Oct 22, 2017
 """
 

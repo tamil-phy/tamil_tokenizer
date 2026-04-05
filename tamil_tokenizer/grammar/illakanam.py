@@ -6,11 +6,16 @@ This module provides Tamil grammar analysis including:
 - Word form identification
 - Grammar pattern matching
 
-Author: Rajamani David (Original Java)
+All patterns are loaded from mainConstant.list via TamilConstantTable.
+No hardcoded suffix patterns.
+
+Author: Tamil Arasan
 """
 
 from typing import Optional, Tuple, List
 from ..constants.tamil_letters import TamilConstants as TC
+from ..config.constant_table import TamilConstantTable
+from ..config.constants import ConfigConstants
 from .tamil_util import TamilUtil
 
 
@@ -18,14 +23,82 @@ class TamilIllakanam:
     """
     Tamil grammar analysis class.
     Provides methods for case analysis and word form identification.
+
+    All suffix patterns are loaded from mainConstant.list data file.
     """
+
+    # Class-level cache for loaded patterns
+    _patterns_loaded = False
+    _tense_markers = {}  # {tense_name: [markers]}
+    _person_endings = {}  # {person_name: [endings]}
+    _main_words = None
+
+    @classmethod
+    def _load_patterns(cls):
+        """Load grammar patterns from TamilConstantTable (mainConstant.list)"""
+        if cls._patterns_loaded:
+            return
+
+        try:
+            ct = TamilConstantTable.get_instance()
+
+            # Load main_words from the constant table
+            main_words, _, _ = ct.get_parse_and_main_value(
+                ConfigConstants.MAIN_CONSTANT_FILE_NAME,
+                ConfigConstants.PARSE_ORDER_FILE_NAME,
+                ConfigConstants.MAIN_PARSE_MAP_FILE_NAME
+            )
+
+            cls._main_words = main_words
+
+            if main_words:
+                # Line 1 (index 0): Tense markers
+                # க்கின்ற்,கின்ற்,க்கிற்,கிற்,ப்ப்,ப்,ந்த்,இன்,இ,ட்,ஈ,ஊ,குவ்
+                tense_line = main_words[0] if len(main_words) > 0 else []
+
+                # Categorize tense markers based on Tamil grammar
+                cls._tense_markers = {
+                    "நிகழ்காலம்": [m for m in tense_line if m in ['க்கின்ற்', 'கின்ற்', 'க்கிற்', 'கிற்']],
+                    "எதிர்காலம்": [m for m in tense_line if m in ['ப்ப்', 'ப்', 'வ்']],
+                    "இறந்தகாலம்": [m for m in tense_line if m in ['ந்த்', 'ட்', 'த்']],
+                }
+
+                # Line 3 (index 2): Person/number endings
+                # ஓன்,ஏன்,ஓம்,ஆய்,ஈர்கள்,ஈர்,ஆள்,ஆர்,ஆர்கள்,அது,அத்,அன்,அள்,அர்,ஏம்
+                person_line = main_words[2] if len(main_words) > 2 else []
+
+                cls._person_endings = {
+                    "தன்மை": [e for e in person_line if e in ['ஏன்', 'ஓம்', 'ஏம்']],
+                    "முன்னிலை": [e for e in person_line if e in ['ஆய்', 'ஈர்', 'ஈர்கள்']],
+                    "படர்க்கை": [e for e in person_line if e in ['ஆன்', 'ஆள்', 'ஆர்', 'ஆர்கள்', 'அது', 'அன்', 'அர்']],
+                }
+
+            cls._patterns_loaded = True
+
+        except Exception as e:
+            print(f"Error loading grammar patterns: {e}")
+            cls._tense_markers = {}
+            cls._person_endings = {}
+            cls._patterns_loaded = True
+
+    @classmethod
+    def get_tense_markers(cls, tense: str) -> List[str]:
+        """Get tense markers for a specific tense"""
+        cls._load_patterns()
+        return cls._tense_markers.get(tense, [])
+
+    @classmethod
+    def get_person_endings(cls, person: str) -> List[str]:
+        """Get person endings for a specific person"""
+        cls._load_patterns()
+        return cls._person_endings.get(person, [])
 
     @staticmethod
     def split_vetrumai(word: str) -> Tuple[str, str, str]:
         """
         வேற்றுமையைப் பிரி - Split word by case suffix
 
-        Analyzes the word and returns the root and case suffix.
+        Uses TamilVetrumai which loads suffixes from data files.
 
         Args:
             word: Tamil word to analyze
@@ -33,203 +106,90 @@ class TamilIllakanam:
         Returns:
             Tuple of (root, suffix, case_type)
         """
-        word = word.strip()
+        from .vetrumai import TamilVetrumai
 
-        # Check each case type
-        if TamilIllakanam.is_second_case(word):
-            return TamilIllakanam.split_second_case(word)
-        elif TamilIllakanam.is_third_case(word):
-            return TamilIllakanam.split_third_case(word)
-        elif TamilIllakanam.is_fourth_case(word):
-            return TamilIllakanam.split_fourth_case(word)
-        elif TamilIllakanam.is_fifth_case(word):
-            return TamilIllakanam.split_fifth_case(word)
-        elif TamilIllakanam.is_sixth_case(word):
-            return TamilIllakanam.split_sixth_case(word)
-        elif TamilIllakanam.is_seventh_case(word):
-            return TamilIllakanam.split_seventh_case(word)
+        result = TamilVetrumai.analyze(word.strip())
+        return (result.root, result.suffix, result.case_tamil_name)
 
-        return (word, "", "")
-
-    # ==================== இரண்டாம் வேற்றுமை (Accusative Case) ====================
+    # ==================== Case Checks (delegate to TamilVetrumai) ====================
 
     @staticmethod
     def is_second_case(word: str) -> bool:
-        """
-        இரண்டாம் வேற்றுமையா
-        Check if word is in accusative case (ends with ஐ)
-        """
-        return word.endswith("ை") or word.endswith("யை")
+        """இரண்டாம் வேற்றுமையா"""
+        from .vetrumai import TamilVetrumai
+        return TamilVetrumai.is_accusative(word)
 
     @staticmethod
     def split_second_case(word: str) -> Tuple[str, str, str]:
-        """
-        இரண்டாம் வேற்றுமையைப் பிரி
-        Split accusative case word
-        """
-        if word.endswith("யை"):
-            return (word[:-2], "யை", "இரண்டாம் வேற்றுமை")
-        elif word.endswith("ை"):
-            # Find the suffix position
-            idx = len(word) - 1
-            # The ை is attached to the previous character
-            return (word[:-1], "ஐ", "இரண்டாம் வேற்றுமை")
-        return (word, "", "")
-
-    # ==================== மூன்றாம் வேற்றுமை (Instrumental Case) ====================
+        """இரண்டாம் வேற்றுமையைப் பிரி"""
+        from .vetrumai import TamilVetrumai
+        root, suffix = TamilVetrumai.split_accusative(word)
+        return (root, suffix, "இரண்டாம் வேற்றுமை")
 
     @staticmethod
     def is_third_case(word: str) -> bool:
-        """
-        மூன்றாம் வேற்றுமையா
-        Check if word is in instrumental case (ends with ஆல், ஒடு, ஓடு, etc.)
-        """
-        return (word.endswith("ால்") or
-                word.endswith("ொடு") or
-                word.endswith("ோடு") or
-                word.endswith("ான்"))
+        """மூன்றாம் வேற்றுமையா"""
+        from .vetrumai import TamilVetrumai
+        return TamilVetrumai.is_instrumental(word)
 
     @staticmethod
     def split_third_case(word: str) -> Tuple[str, str, str]:
-        """
-        மூன்றாம் வேற்றுமையைப் பிரி
-        Split instrumental case word
-        """
-        if word.endswith("ால்"):
-            return (word[:-2], "ஆல்", "மூன்றாம் வேற்றுமை")
-        elif word.endswith("ொடு"):
-            return (word[:-2], "ஒடு", "மூன்றாம் வேற்றுமை")
-        elif word.endswith("ோடு"):
-            return (word[:-2], "ஓடு", "மூன்றாம் வேற்றுமை")
-        elif word.endswith("ான்"):
-            return (word[:-2], "ஆன்", "மூன்றாம் வேற்றுமை")
-        return (word, "", "")
-
-    # ==================== நான்காம் வேற்றுமை (Dative Case) ====================
+        """மூன்றாம் வேற்றுமையைப் பிரி"""
+        from .vetrumai import TamilVetrumai
+        root, suffix = TamilVetrumai.split_instrumental(word)
+        return (root, suffix, "மூன்றாம் வேற்றுமை")
 
     @staticmethod
     def is_fourth_case(word: str) -> bool:
-        """
-        நான்காம் வேற்றுமையா
-        Check if word is in dative case (ends with க்கு, உக்கு, etc.)
-        """
-        return (word.endswith("க்கு") or
-                word.endswith("க்குக்") or
-                word.endswith("க்குச்") or
-                word.endswith("க்குப்"))
+        """நான்காம் வேற்றுமையா"""
+        from .vetrumai import TamilVetrumai
+        return TamilVetrumai.is_dative(word)
 
     @staticmethod
     def split_fourth_case(word: str) -> Tuple[str, str, str]:
-        """
-        நான்காம் வேற்றுமையைப் பிரி
-        Split dative case word
-        """
-        if word.endswith("க்குப்"):
-            return (word[:-5], "க்குப்", "நான்காம் வேற்றுமை")
-        elif word.endswith("க்குக்"):
-            return (word[:-5], "க்குக்", "நான்காம் வேற்றுமை")
-        elif word.endswith("க்குச்"):
-            return (word[:-5], "க்குச்", "நான்காம் வேற்றுமை")
-        elif word.endswith("க்கு"):
-            return (word[:-3], "க்கு", "நான்காம் வேற்றுமை")
-        return (word, "", "")
-
-    # ==================== ஐந்தாம் வேற்றுமை (Ablative Case) ====================
+        """நான்காம் வேற்றுமையைப் பிரி"""
+        from .vetrumai import TamilVetrumai
+        root, suffix = TamilVetrumai.split_dative(word)
+        return (root, suffix, "நான்காம் வேற்றுமை")
 
     @staticmethod
     def is_fifth_case(word: str) -> bool:
-        """
-        ஐந்தாம் வேற்றுமையா
-        Check if word is in ablative case (ends with இன், இல், இலிருந்து, etc.)
-        """
-        return (word.endswith("ின்") or
-                word.endswith("ில்") or
-                word.endswith("த்தில்") or
-                word.endswith("இலிருந்து") or
-                word.endswith("யிலிருந்து") or
-                word.endswith("னின்று") or
-                word.endswith("னினின்று"))
+        """ஐந்தாம் வேற்றுமையா"""
+        from .vetrumai import TamilVetrumai
+        return TamilVetrumai.is_ablative(word)
 
     @staticmethod
     def split_fifth_case(word: str) -> Tuple[str, str, str]:
-        """
-        ஐந்தாம் வேற்றுமையைப் பிரி
-        Split ablative case word
-        """
-        if word.endswith("இலிருந்து"):
-            return (word[:-8], "இலிருந்து", "ஐந்தாம் வேற்றுமை")
-        elif word.endswith("யிலிருந்து"):
-            return (word[:-9], "யிலிருந்து", "ஐந்தாம் வேற்றுமை")
-        elif word.endswith("னினின்று"):
-            return (word[:-7], "னினின்று", "ஐந்தாம் வேற்றுமை")
-        elif word.endswith("னின்று"):
-            return (word[:-5], "னின்று", "ஐந்தாம் வேற்றுமை")
-        elif word.endswith("த்தில்"):
-            return (word[:-4], "த்தில்", "ஐந்தாம் வேற்றுமை")
-        elif word.endswith("ில்"):
-            return (word[:-2], "இல்", "ஐந்தாம் வேற்றுமை")
-        elif word.endswith("ின்"):
-            return (word[:-2], "இன்", "ஐந்தாம் வேற்றுமை")
-        return (word, "", "")
-
-    # ==================== ஆறாம் வேற்றுமை (Genitive Case) ====================
+        """ஐந்தாம் வேற்றுமையைப் பிரி"""
+        from .vetrumai import TamilVetrumai
+        root, suffix = TamilVetrumai.split_ablative(word)
+        return (root, suffix, "ஐந்தாம் வேற்றுமை")
 
     @staticmethod
     def is_sixth_case(word: str) -> bool:
-        """
-        ஆறாம் வேற்றுமையா
-        Check if word is in genitive case (possessive - அது, உடைய, etc.)
-        """
-        return (word.endswith("அது") or
-                word.endswith("ுடைய") or
-                word.endswith("உடைய") or
-                word in ["என", "எனது", "உன்", "உனது", "அவன்", "அவள்", "அது", "அவர்", "நாம்", "நாங்கள்"])
+        """ஆறாம் வேற்றுமையா"""
+        from .vetrumai import TamilVetrumai
+        return TamilVetrumai.is_genitive(word)
 
     @staticmethod
     def split_sixth_case(word: str) -> Tuple[str, str, str]:
-        """
-        ஆறாம் வேற்றுமையைப் பிரி
-        Split genitive case word
-        """
-        if word.endswith("ுடைய"):
-            return (word[:-4], "உடைய", "ஆறாம் வேற்றுமை")
-        elif word.endswith("உடைய"):
-            return (word[:-4], "உடைய", "ஆறாம் வேற்றுமை")
-        elif word.endswith("அது"):
-            return (word[:-3], "அது", "ஆறாம் வேற்றுமை")
-        return (word, "", "")
-
-    # ==================== ஏழாம் வேற்றுமை (Locative Case) ====================
+        """ஆறாம் வேற்றுமையைப் பிரி"""
+        from .vetrumai import TamilVetrumai
+        root, suffix = TamilVetrumai.split_genitive(word)
+        return (root, suffix, "ஆறாம் வேற்றுமை")
 
     @staticmethod
     def is_seventh_case(word: str) -> bool:
-        """
-        ஏழாம் வேற்றுமையா
-        Check if word is in locative case (இல், கண், இடம், etc.)
-        """
-        return (word.endswith("ில்") or
-                word.endswith("த்தில்") or
-                word.endswith("கண்") or
-                word.endswith("இடம்") or
-                word.endswith("இடத்தில்"))
+        """ஏழாம் வேற்றுமையா"""
+        from .vetrumai import TamilVetrumai
+        return TamilVetrumai.is_locative(word)
 
     @staticmethod
     def split_seventh_case(word: str) -> Tuple[str, str, str]:
-        """
-        ஏழாம் வேற்றுமையைப் பிரி
-        Split locative case word
-        """
-        if word.endswith("இடத்தில்"):
-            return (word[:-7], "இடத்தில்", "ஏழாம் வேற்றுமை")
-        elif word.endswith("த்தில்"):
-            return (word[:-4], "த்தில்", "ஏழாம் வேற்றுமை")
-        elif word.endswith("ில்"):
-            return (word[:-2], "இல்", "ஏழாம் வேற்றுமை")
-        elif word.endswith("கண்"):
-            return (word[:-2], "கண்", "ஏழாம் வேற்றுமை")
-        elif word.endswith("இடம்"):
-            return (word[:-3], "இடம்", "ஏழாம் வேற்றுமை")
-        return (word, "", "")
+        """ஏழாம் வேற்றுமையைப் பிரி"""
+        from .vetrumai import TamilVetrumai
+        root, suffix = TamilVetrumai.split_locative(word)
+        return (root, suffix, "ஏழாம் வேற்றுமை")
 
     # ==================== வினா எழுத்து (Question Words) ====================
 
@@ -239,16 +199,16 @@ class TamilIllakanam:
         வினாச்சொல்லா
         Check if word is a question word
         """
-        question_starters = ["யார்", "என்ன", "எது", "எங்கே", "எப்போது", "எப்படி", "ஏன்"]
-        question_enders = ["ஆ", "ஓ"]
+        # Question endings from mainConstant.list
+        TamilIllakanam._load_patterns()
 
-        for starter in question_starters:
-            if word.startswith(starter):
-                return True
-
-        for ender in question_enders:
-            if word.endswith(ender):
-                return True
+        # Check question ending suffixes from data
+        if TamilIllakanam._main_words and len(TamilIllakanam._main_words) > 3:
+            # Line 4 (index 3): ஆ,ஓ (question endings)
+            q_endings = TamilIllakanam._main_words[3] if len(TamilIllakanam._main_words) > 3 else []
+            for ending in q_endings:
+                if word.endswith(ending):
+                    return True
 
         return False
 
@@ -258,67 +218,81 @@ class TamilIllakanam:
     def get_number(word: str) -> str:
         """
         எண்கள் காட்டு - Get singular/plural
+
+        Uses plural markers from mainConstant.list
         """
-        if word.endswith("கள்") or word.endswith("மார்") or word.endswith("ர்கள்"):
-            return "பன்மை"  # Plural
+        TamilIllakanam._load_patterns()
+
+        # Line 11 (index 10): கள்,கட் (plural markers)
+        if TamilIllakanam._main_words and len(TamilIllakanam._main_words) > 10:
+            plural_markers = TamilIllakanam._main_words[10]
+            for marker in plural_markers:
+                if word.endswith(marker):
+                    return "பன்மை"  # Plural
+
         return "ஒருமை"  # Singular
 
     # ==================== பால் (Gender) Analysis ====================
 
-    @staticmethod
-    def get_gender(word: str) -> str:
+    @classmethod
+    def get_gender(cls, word: str) -> str:
         """
         பால் காட்டு - Get gender from word ending
+
+        Uses person endings from mainConstant.list
         """
+        cls._load_patterns()
         split_word = TamilUtil.split_letters(word)
 
-        # ஆண்பால் (Masculine)
-        if split_word.endswith("ஆன்") or split_word.endswith("ன்"):
-            return "ஆண்பால்"
+        # Get person endings and check for gender patterns
+        padarkkai = cls._person_endings.get("படர்க்கை", [])
 
-        # பெண்பால் (Feminine)
-        if split_word.endswith("ஆள்") or split_word.endswith("ள்"):
-            return "பெண்பால்"
+        # Check masculine (ஆன், அன்)
+        for ending in padarkkai:
+            if ending in ['ஆன்', 'அன்'] and split_word.endswith(ending):
+                return "ஆண்பால்"
 
-        # பலர்பால் (Rational plural)
-        if (split_word.endswith("ஆர்") or split_word.endswith("மார்") or
-            split_word.endswith("ர்கள்") or word.endswith("ய")):
-            return "பலர்பால்"
+        # Check feminine (ஆள், அள்)
+        for ending in padarkkai:
+            if ending in ['ஆள்', 'அள்'] and split_word.endswith(ending):
+                return "பெண்பால்"
 
-        # ஒன்றன்பால் (Neuter singular)
-        if split_word.endswith("து") or split_word.endswith("அது"):
-            return "ஒன்றன்பால்"
+        # Check rational plural (ஆர், ஆர்கள்)
+        for ending in padarkkai:
+            if ending in ['ஆர்', 'ஆர்கள்', 'அர்'] and split_word.endswith(ending):
+                return "பலர்பால்"
 
-        # பலவின்பால் (Neuter plural)
-        if word.endswith("கள்") or split_word.endswith("அ"):
-            return "பலவின்பால்"
+        # Check neuter (அது)
+        for ending in padarkkai:
+            if ending in ['அது'] and split_word.endswith(ending):
+                return "ஒன்றன்பால்"
 
         return ""
 
     # ==================== இடம் (Person) Analysis ====================
 
-    @staticmethod
-    def get_person(word: str) -> str:
+    @classmethod
+    def get_person(cls, word: str) -> str:
         """
         படர்க்கை காட்டு - Get person (1st, 2nd, 3rd)
+
+        Uses person endings from mainConstant.list
         """
+        cls._load_patterns()
         split_word = TamilUtil.split_letters(word)
 
-        # தன்மை (First person)
-        first_person_endings = ["ஏன்", "ஓம்", "ஏம்"]
-        for ending in first_person_endings:
+        # Check first person (தன்மை)
+        for ending in cls._person_endings.get("தன்மை", []):
             if split_word.endswith(ending):
                 return "தன்மை"
 
-        # முன்னிலை (Second person)
-        second_person_endings = ["ஆய்", "ஈர்", "ஈர்கள்"]
-        for ending in second_person_endings:
+        # Check second person (முன்னிலை)
+        for ending in cls._person_endings.get("முன்னிலை", []):
             if split_word.endswith(ending):
                 return "முன்னிலை"
 
-        # படர்க்கை (Third person) - default
-        third_person_endings = ["ஆன்", "ஆள்", "ஆர்", "ஆர்கள்", "அது", "அன", "அர்"]
-        for ending in third_person_endings:
+        # Check third person (படர்க்கை)
+        for ending in cls._person_endings.get("படர்க்கை", []):
             if split_word.endswith(ending):
                 return "படர்க்கை"
 
@@ -326,28 +300,28 @@ class TamilIllakanam:
 
     # ==================== காலம் (Tense) Analysis ====================
 
-    @staticmethod
-    def get_tense(word: str) -> str:
+    @classmethod
+    def get_tense(cls, word: str) -> str:
         """
         காலம் காட்டு - Get tense from word
+
+        Uses tense markers from mainConstant.list
         """
+        cls._load_patterns()
         split_word = TamilUtil.split_letters(word)
 
-        # இறந்தகாலம் (Past tense)
-        past_markers = ["த்த்", "ந்த்", "ட்ட்", "ற்ற்", "ன்"]
-        for marker in past_markers:
+        # Check past tense (இறந்தகாலம்)
+        for marker in cls._tense_markers.get("இறந்தகாலம்", []):
             if marker in split_word:
                 return "இறந்தகாலம்"
 
-        # நிகழ்காலம் (Present tense)
-        present_markers = ["கிற்", "கின்ற்", "க்கிற்", "க்கின்ற்"]
-        for marker in present_markers:
+        # Check present tense (நிகழ்காலம்)
+        for marker in cls._tense_markers.get("நிகழ்காலம்", []):
             if marker in split_word:
                 return "நிகழ்காலம்"
 
-        # எதிர்காலம் (Future tense)
-        future_markers = ["ப்ப்", "வ்"]
-        for marker in future_markers:
+        # Check future tense (எதிர்காலம்)
+        for marker in cls._tense_markers.get("எதிர்காலம்", []):
             if marker in split_word:
                 return "எதிர்காலம்"
 

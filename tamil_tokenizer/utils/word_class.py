@@ -3,7 +3,7 @@ Word Class - Equivalent to WordClass.java
 
 This module provides the WordClass data structure for holding parsed word results.
 
-Author: Rajamani David (Original Java)
+Author: Tamil Arasan
 """
 
 from typing import Dict, List, Optional, Any

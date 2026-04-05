@@ -3,7 +3,7 @@ Word Parser Interface - Equivalent to WordParserInterface.java
 
 This module defines the interface for all word parsers.
 
-Author: Rajamani David (Original Java)
+Author: Tamil Arasan
 """
 
 from abc import ABC, abstractmethod

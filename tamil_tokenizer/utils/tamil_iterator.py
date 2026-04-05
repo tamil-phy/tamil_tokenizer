@@ -4,7 +4,7 @@ Tamil String Iterator - Equivalent to TamilStringIterator.java
 This module provides an iterator for Tamil strings that properly handles
 multi-byte characters and vowel signs.
 
-Author: Rajamani David (Original Java)
+Author: Tamil Arasan
 """
 
 from typing import List, Optional, Iterator

@@ -3,18 +3,15 @@ Config Loader - Equivalent to ReadConfig.java
 
 This module provides file reading utilities for configuration and rule files.
 
-Author: Rajamani David (Original Java)
+Author: Tamil Arasan
 Since: Oct 23, 2017
 """
 
-import logging
 import os
 import re
 from pathlib import Path
 from typing import Dict, List, Optional, Tuple, Any
 from collections import OrderedDict
-
-logger = logging.getLogger(__name__)
 
 
 class ConfigLoader:
@@ -115,7 +112,7 @@ class ConfigLoader:
                         values = [v.strip() for v in line.split(',')]
                         main_list.append(values)
         except IOError as e:
-            logger.error(f"Error reading file {filename}: {e}")
+            print(f"Error reading file {filename}: {e}")
 
         return main_list
 
@@ -150,7 +147,7 @@ class ConfigLoader:
                         if line_list:
                             main_list.append(line_list)
         except IOError as e:
-            logger.error(f"Error reading file {filename}: {e}")
+            print(f"Error reading file {filename}: {e}")
 
         return main_list
 
@@ -177,7 +174,7 @@ class ConfigLoader:
                         value = line[idx + 1:].strip()
                         props[key] = value
         except IOError as e:
-            logger.error(f"Error reading file {filename}: {e}")
+            print(f"Error reading file {filename}: {e}")
 
         return props
 
@@ -212,7 +209,7 @@ class ConfigLoader:
                         if val:
                             result_list.append(val)
         except IOError as e:
-            logger.error(f"Error reading file {filename}: {e}")
+            print(f"Error reading file {filename}: {e}")
 
         return result_list
 
@@ -230,7 +227,7 @@ class ConfigLoader:
             with open(filename, 'r', encoding='utf-8') as f:
                 return f.read()
         except IOError as e:
-            logger.error(f"Error reading file {filename}: {e}")
+            print(f"Error reading file {filename}: {e}")
             return ""
 
     def read_file_as_map(self, filename: str) -> Dict[str, str]:
@@ -255,7 +252,7 @@ class ConfigLoader:
                         value = line[idx + 1:]
                         main_map[key] = value
         except IOError as e:
-            logger.error(f"Error reading file {filename}: {e}")
+            print(f"Error reading file {filename}: {e}")
 
         return main_map
 
@@ -269,7 +266,7 @@ class ConfigLoader:
         Returns:
             Dictionary mapping config keys to file paths
         """
-        logger.debug(f"Loading configuration from: {filename}")
+        print(f"Loading configuration from: {filename}")
         file_map: Dict[str, str] = {}
 
         try:
@@ -283,9 +280,9 @@ class ConfigLoader:
                             value = parts[1].strip()
                             file_map[key] = value
         except IOError as e:
-            logger.error(f"Error reading file {filename}: {e}")
+            print(f"Error reading file {filename}: {e}")
 
-        logger.debug(f"Loaded {len(file_map)} file mappings")
+        print(f"Loaded {len(file_map)} file mappings")
         return file_map
 
     def read_simple_list_file(self, filename: str) -> List[str]:
@@ -307,7 +304,7 @@ class ConfigLoader:
                     if line:
                         result_list.append(line)
         except IOError as e:
-            logger.error(f"Error reading file {filename}: {e}")
+            print(f"Error reading file {filename}: {e}")
 
         return result_list
 
@@ -334,7 +331,7 @@ class ConfigLoader:
                             if val:
                                 result_list.append(val)
         except IOError as e:
-            logger.error(f"Error reading file {filename}: {e}")
+            print(f"Error reading file {filename}: {e}")
 
         return result_list
 

@@ -7,7 +7,7 @@ This module provides core utility functions for Tamil text processing including:
 - Pattern matching for suffixes
 - Character classification utilities
 
-Author: Rajamani David (Original Java)
+Author: Tamil Arasan
 Since: May 2, 2017
 """
 

@@ -3,7 +3,7 @@ Config Constants - Equivalent to ConfigConstants.java
 
 This module defines constant names for configuration file keys.
 
-Author: Rajamani David (Original Java)
+Author: Tamil Arasan
 Since: Oct 25, 2017
 """
 
