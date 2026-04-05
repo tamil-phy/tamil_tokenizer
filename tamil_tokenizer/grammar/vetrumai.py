@@ -192,6 +192,7 @@ class TamilVetrumai:
         if root is not None:
             # Strip sandhi glide consonants (ய, வ) if present after vowel sign
             # e.g., மழைய + ால் → மழை (not மழைய)
+            # The glide appears as bare consonant after vowel sign when suffix is vowel-initial
             if len(root) >= 2 and root[-1] in ('ய', 'வ'):
                 # Check if preceded by a vowel sign
                 prev_char_code = ord(root[-2])

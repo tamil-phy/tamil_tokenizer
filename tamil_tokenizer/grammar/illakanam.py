@@ -134,22 +134,39 @@ class TamilIllakanam:
 
     # ==================== Tense & Person matching ====================
 
+    # Display-form tense markers (past, present, future)
+    _TENSE_DISPLAY = [
+        "கின்ற", "கிற",  # present
+        "ந்த", "த்த", "ட்ட", "ற்ற", "ன்ற",  # past
+        "ப்ப", "வ",  # future
+    ]
+
+    # Display-form person/number endings
+    _PERSON_DISPLAY = [
+        "ஆர்கள்", "ார்கள்",  # 3rd person plural honorific
+        "ஈர்கள்", "ீர்கள்",  # 2nd person plural
+        "ஆன்", "ான்",  # 3rd person masc singular
+        "ஆள்", "ாள்",  # 3rd person fem singular
+        "ஆர்", "ார்",  # 3rd person honorific
+        "ஏன்", "ேன்",  # 1st person singular
+        "ஓம்", "ோம்",  # 1st person plural
+        "ஆய்", "ாய்",  # 2nd person singular
+        "ஈர்", "ீர்",  # 2nd person plural
+        "அது", "து",  # neuter
+    ]
+
     @classmethod
     def find_tense_marker(cls, word: str) -> str:
-        """Find a matching tense marker in the word (from data flat list)"""
-        cls._load()
-        split_word = TamilUtil.split_letters(word)
-        for marker in sorted(cls._tense_markers, key=len, reverse=True):
-            if marker in split_word:
+        """Find a matching tense marker in the word"""
+        for marker in sorted(cls._TENSE_DISPLAY, key=len, reverse=True):
+            if marker in word:
                 return marker
         return ""
 
     @classmethod
     def find_person_ending(cls, word: str) -> str:
-        """Find a matching person ending in the word (from data flat list)"""
-        cls._load()
-        split_word = TamilUtil.split_letters(word)
-        for ending in sorted(cls._person_endings, key=len, reverse=True):
-            if split_word.endswith(ending):
+        """Find a matching person ending in the word"""
+        for ending in sorted(cls._PERSON_DISPLAY, key=len, reverse=True):
+            if word.endswith(ending):
                 return ending
         return ""

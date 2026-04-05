@@ -208,25 +208,26 @@ class TamilTokenizer:
             ch = text[i]
 
             if ch in _SENTENCE_ENDERS:
-                # Look ahead: is this truly end of sentence?
-                # Not end-of-sentence if followed by a digit (e.g., "3.14")
-                next_idx = i + 1
-                while next_idx < len(text) and text[next_idx] == ' ':
-                    next_idx += 1
+                # Consume consecutive sentence enders (ellipsis handling: ...)
+                end_pos = i
+                while end_pos + 1 < len(text) and text[end_pos + 1] in _SENTENCE_ENDERS:
+                    end_pos += 1
 
-                is_decimal = (ch == '.' and i + 1 < len(text) and text[i + 1].isdigit())
+                # Not end-of-sentence if followed by a digit (e.g., "3.14")
+                is_decimal = (ch == '.' and end_pos + 1 < len(text) and text[end_pos + 1].isdigit())
 
                 if not is_decimal:
-                    # Include the punctuation in the sentence
-                    sent_text = text[current_start:i + 1].strip()
+                    # Include all punctuation in the sentence
+                    sent_text = text[current_start:end_pos + 1].strip()
                     if sent_text:
                         sentences.append(Token(
                             text=sent_text,
                             token_type=TokenType.SENTENCE,
                             start=current_start,
-                            end=i + 1,
+                            end=end_pos + 1,
                         ))
-                    current_start = i + 1
+                    current_start = end_pos + 1
+                    i = end_pos
             i += 1
 
         # Remaining text as a sentence
@@ -441,6 +442,10 @@ class TamilTokenizer:
         if not suffixes:
             root, suffixes, parse_meta = self._analyze_verb_morphology(word)
 
+        # 4. If still no result, try plural marker detection
+        if not suffixes:
+            root, suffixes, parse_meta = self._analyze_plural(word)
+
         # Build morpheme tokens
         if suffixes:
             morphemes.append(Token(
@@ -527,27 +532,20 @@ class TamilTokenizer:
         return word, [], {}
 
     def _analyze_verb_morphology(self, word: str):
-        """Analyze verb morphology for tense and person markers (from data)."""
+        """Analyze verb morphology for tense and person markers."""
         try:
             from .grammar.illakanam import TamilIllakanam
-            from .grammar.tamil_util import TamilUtil
 
             suffixes = []
 
-            # Find tense marker from data (flat list from mainConstant.list)
-            tense_marker = TamilIllakanam.find_tense_marker(word)
-            tense_suffix = None
-            if tense_marker:
-                tense_suffix = TamilUtil.join_letters(tense_marker)
+            # Find person ending first (it's at the end of the word)
+            person_suffix = TamilIllakanam.find_person_ending(word)
 
-            # Find person ending from data (flat list from mainConstant.list)
-            person_marker = TamilIllakanam.find_person_ending(word)
-            person_suffix = None
-            if person_marker:
-                person_suffix = TamilUtil.join_letters(person_marker)
+            # Find tense marker in the word
+            tense_suffix = TamilIllakanam.find_tense_marker(word)
 
             if tense_suffix or person_suffix:
-                # Estimate root: strip known suffixes from end
+                # Strip suffixes from end to get root
                 root = word
                 if person_suffix and root.endswith(person_suffix):
                     root = root[:-len(person_suffix)]
@@ -573,6 +571,20 @@ class TamilTokenizer:
         except Exception:
             pass
 
+        return word, [], {}
+
+    def _analyze_plural(self, word: str):
+        """Detect plural markers (கள், கட்) at end of word."""
+        # Common plural markers in display form
+        plural_markers = ["கள்", "கட்"]
+        
+        for marker in plural_markers:
+            if word.endswith(marker) and len(word) > len(marker):
+                root = word[:-len(marker)]
+                return root, [(marker, TokenType.PLURAL_MARKER, {"source": "plural"})], {
+                    "root_meta": {"source": "plural"}
+                }
+        
         return word, [], {}
 
     # ===================== Unified Pipeline =====================
